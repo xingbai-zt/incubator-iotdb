@@ -407,7 +407,11 @@ public class TsFileIOWriter {
       while (chunkMetaDataIterator.hasNext()) {
         ChunkMetaData chunkMetaData = chunkMetaDataIterator.next();
         Path path = new Path(deviceId, chunkMetaData.getMeasurementUid());
-        int startTimeIdx = startTimeIdxes.get(path);
+        Integer startTimeIdx = startTimeIdxes.get(path);
+        if (startTimeIdx == null) {
+          logger.error("Unexpected timeseries {} found in file {}", path, file);
+          continue;
+        }
 
         List<Long> pathChunkStartTimes = chunkStartTimes.get(path);
         boolean chunkValid = startTimeIdx < pathChunkStartTimes.size()

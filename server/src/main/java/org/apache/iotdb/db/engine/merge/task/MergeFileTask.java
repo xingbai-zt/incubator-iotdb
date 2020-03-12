@@ -166,7 +166,16 @@ class MergeFileTask {
               new File(nextMergeVersionFile.getAbsolutePath() + TsFileResource.RESOURCE_SUFFIX));
       seqFile.setFile(nextMergeVersionFile);
     } catch (Exception e) {
-      logger.error("merge broken file: " + oldFileWriter.getFile().getAbsolutePath(), e);
+      logger.error("An exception is encountered when moving merged chunks to the old file {}: {}"
+          ,seqFile, e.getMessage());
+      // the old file may have been truncated, recover it if so
+      RestorableTsFileIOWriter oldFileRecoverWriter = new RestorableTsFileIOWriter(
+          seqFile.getFile());
+      if (oldFileRecoverWriter.hasCrashed() && oldFileRecoverWriter.canWrite()) {
+        oldFileRecoverWriter.endFile(new Schema(oldFileRecoverWriter.getKnownSchema()));
+      } else {
+        oldFileRecoverWriter.close();
+      }
       throw e;
     } finally {
       seqFile.getWriteQueryLock().writeLock().unlock();
@@ -253,7 +262,9 @@ class MergeFileTask {
               new File(nextMergeVersionFile.getAbsolutePath() + TsFileResource.RESOURCE_SUFFIX));
       seqFile.setFile(nextMergeVersionFile);
     } catch (Exception e) {
-      logger.error(e.getMessage(), e);
+      logger.error("An exception is encountered when moving unmerged chunks to the new file {}: {}"
+          ,seqFile, e.getMessage());
+      throw e;
     }  finally {
       seqFile.getWriteQueryLock().writeLock().unlock();
     }

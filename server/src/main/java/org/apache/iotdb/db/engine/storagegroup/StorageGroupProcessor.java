@@ -286,7 +286,7 @@ public class StorageGroupProcessor {
       if (!IoTDBDescriptor.getInstance().getConfig().isContinueMergeAfterReboot()) {
         mergingMods.delete();
       }
-    } catch (IOException | MetadataException e) {
+    } catch (Exception e) {
       throw new StorageGroupProcessorException(e);
     }
 
