@@ -18,6 +18,7 @@
  */
 package org.apache.iotdb.tsfile.read;
 
+import java.nio.BufferUnderflowException;
 import org.apache.iotdb.tsfile.common.conf.TSFileConfig;
 import org.apache.iotdb.tsfile.common.conf.TSFileDescriptor;
 import org.apache.iotdb.tsfile.compress.IUnCompressor;
@@ -260,8 +261,13 @@ public class TsFileSequenceReader implements AutoCloseable {
    */
   public TsFileMetaData readFileMetadata() throws IOException {
     if (tsFileMetaData == null) {
-      tsFileMetaData = TsFileMetaData
-          .deserializeFrom(readData(fileMetadataPos, fileMetadataSize), isOldVersion);
+      try {
+        tsFileMetaData = TsFileMetaData
+            .deserializeFrom(readData(fileMetadataPos, fileMetadataSize), isOldVersion);
+      } catch (BufferUnderflowException e) {
+        logger.error("file metadata deserialize error: " + file);
+        throw e;
+      }
     }
     if (isOldVersion) {
       tsFileMetaData.setTotalChunkNum(countTotalChunkNum());

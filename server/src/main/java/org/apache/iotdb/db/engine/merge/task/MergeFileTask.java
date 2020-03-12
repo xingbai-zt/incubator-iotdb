@@ -118,6 +118,7 @@ class MergeFileTask {
       return;
     }
 
+    TsFileIOWriter oldFileWriter = null;
     seqFile.getWriteQueryLock().writeLock().lock();
     try {
       TsFileMetaDataCache.getInstance().remove(seqFile);
@@ -125,7 +126,6 @@ class MergeFileTask {
       FileReaderManager.getInstance().closeFileAndRemoveReader(seqFile);
 
       resource.removeFileReader(seqFile);
-      TsFileIOWriter oldFileWriter;
       try {
         oldFileWriter = new ForceAppendTsFileWriter(seqFile.getFile());
         mergeLogger.logFileMergeStart(seqFile.getFile(), ((ForceAppendTsFileWriter) oldFileWriter).getTruncatePosition());
@@ -166,7 +166,8 @@ class MergeFileTask {
               new File(nextMergeVersionFile.getAbsolutePath() + TsFileResource.RESOURCE_SUFFIX));
       seqFile.setFile(nextMergeVersionFile);
     } catch (Exception e) {
-      logger.error(e.getMessage(), e);
+      logger.error("merge broken file: " + oldFileWriter.getFile().getAbsolutePath(), e);
+      throw e;
     } finally {
       seqFile.getWriteQueryLock().writeLock().unlock();
     }
