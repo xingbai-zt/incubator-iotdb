@@ -126,9 +126,12 @@ import org.apache.iotdb.tsfile.utils.Binary;
 import org.apache.iotdb.tsfile.utils.Pair;
 import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
 import org.apache.iotdb.tsfile.write.writer.RestorableTsFileIOWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PlanExecutor implements IPlanExecutor {
 
+  private static final Logger logger = LoggerFactory.getLogger(PlanExecutor.class);
   // for data query
   protected IQueryRouter queryRouter;
   // for system schema
@@ -724,12 +727,24 @@ public class PlanExecutor implements IPlanExecutor {
           }
         }
         MNode measurementNode = node.getChild(measurement);
+
+        if (node.getChild(measurement) == null) {
+          logger.error("node {} does not have child {}", node.getFullPath(), measurement);
+        }
+
         if (measurementNode instanceof InternalMNode) {
+          logger.error("path is not a leaf: {} ", measurementNode.getFullPath());
           throw new QueryProcessException(
               String.format("Current Path is not leaf node. %s.%s", deviceId, measurement));
         }
 
-        dataTypes[i] = measurementNode.getSchema().getType();
+        try {
+          dataTypes[i] = measurementNode.getSchema().getType();
+        } catch (Exception e) {
+          logger.error("path do not has a measurementSchema: {} , schema is null? ",
+              measurementNode.getFullPath(), measurementNode.getSchema() == null);
+
+        }
       }
       insertPlan.setDataTypes(dataTypes);
       StorageEngine.getInstance().insert(insertPlan);
