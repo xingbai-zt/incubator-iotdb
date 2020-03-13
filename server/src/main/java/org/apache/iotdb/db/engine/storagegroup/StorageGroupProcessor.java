@@ -971,6 +971,8 @@ public class StorageGroupProcessor {
 
       // ensure that the file is not used by any queries
       if (resource.getWriteQueryLock().writeLock().tryLock()) {
+        logger.warn("{} lock write resource {}", Thread.currentThread().getName(),
+            resource.getFile().getAbsolutePath());
         try {
           // physical removal
           resource.remove();
@@ -985,6 +987,8 @@ public class StorageGroupProcessor {
           }
         } finally {
           resource.getWriteQueryLock().writeLock().unlock();
+          logger.warn("{} unlock write resource {}", Thread.currentThread().getName(),
+              resource.getFile().getAbsolutePath());
         }
       }
     } finally {
@@ -1446,10 +1450,14 @@ public class StorageGroupProcessor {
 
     for (TsFileResource unseqFile : unseqFiles) {
       unseqFile.getWriteQueryLock().writeLock().lock();
+      logger.warn("{} lock write resource {}", Thread.currentThread().getName(),
+          unseqFile.getFile().getAbsolutePath());
       try {
         unseqFile.remove();
       } finally {
         unseqFile.getWriteQueryLock().writeLock().unlock();
+        logger.warn("{} unlock write resource {}", Thread.currentThread().getName(),
+            unseqFile.getFile().getAbsolutePath());
       }
     }
   }
@@ -1457,6 +1465,8 @@ public class StorageGroupProcessor {
   @SuppressWarnings("squid:S1141")
   private void updateMergeModification(TsFileResource seqFile) {
     seqFile.getWriteQueryLock().writeLock().lock();
+    logger.warn("{} lock write resource {}", Thread.currentThread().getName(),
+        seqFile.getFile().getAbsolutePath());
     try {
       // remove old modifications and write modifications generated during merge
       seqFile.removeModFile();
@@ -1476,6 +1486,8 @@ public class StorageGroupProcessor {
           seqFile.getFile(), e);
     } finally {
       seqFile.getWriteQueryLock().writeLock().unlock();
+      logger.warn("{} unlock write resource {}", Thread.currentThread().getName(),
+          seqFile.getFile().getAbsolutePath());
     }
   }
 
@@ -1675,6 +1687,8 @@ public class StorageGroupProcessor {
       if (resource.getHistoricalVersions().containsAll(seqFile.getHistoricalVersions())
           && !resource.getHistoricalVersions().equals(seqFile.getHistoricalVersions())
           && seqFile.getWriteQueryLock().writeLock().tryLock()) {
+        logger.warn("{} lock write resource {}", Thread.currentThread().getName(),
+            seqFile.getFile().getAbsolutePath());
         try {
           iterator.remove();
           seqFile.remove();
@@ -1683,6 +1697,8 @@ public class StorageGroupProcessor {
           throw e;
         } finally {
           seqFile.getWriteQueryLock().writeLock().unlock();
+          logger.warn("{} unlock write resource {}", Thread.currentThread().getName(),
+              seqFile.getFile().getAbsolutePath());
         }
       }
     }
@@ -1887,11 +1903,15 @@ public class StorageGroupProcessor {
       return false;
     }
     tsFileResourceToBeDeleted.getWriteQueryLock().writeLock().lock();
+    logger.warn("{} lock write resource {}", Thread.currentThread().getName(),
+        tsFileResourceToBeDeleted.getFile().getAbsolutePath());
     try {
       tsFileResourceToBeDeleted.remove();
       logger.info("Delete tsfile {} successfully.", tsFileResourceToBeDeleted.getFile());
     } finally {
       tsFileResourceToBeDeleted.getWriteQueryLock().writeLock().unlock();
+      logger.warn("{} unlock write resource {}", Thread.currentThread().getName(),
+          tsFileResourceToBeDeleted.getFile().getAbsolutePath());
     }
     return true;
   }
@@ -1945,6 +1965,8 @@ public class StorageGroupProcessor {
       return false;
     }
     tsFileResourceToBeMoved.getWriteQueryLock().writeLock().lock();
+    logger.warn("{} lock write resource {}", Thread.currentThread().getName(),
+        tsFileResourceToBeMoved.getFile().getAbsolutePath());
     try {
       tsFileResourceToBeMoved.moveTo(targetDir);
       logger
@@ -1952,6 +1974,8 @@ public class StorageGroupProcessor {
               targetDir.getPath());
     } finally {
       tsFileResourceToBeMoved.getWriteQueryLock().writeLock().unlock();
+      logger.warn("{} unlock write resource {}", Thread.currentThread().getName(),
+          tsFileResourceToBeMoved.getFile().getAbsolutePath());
     }
     return true;
   }

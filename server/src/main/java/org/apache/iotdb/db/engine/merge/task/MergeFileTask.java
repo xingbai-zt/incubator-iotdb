@@ -120,11 +120,12 @@ class MergeFileTask {
 
     TsFileIOWriter oldFileWriter = null;
     seqFile.getWriteQueryLock().writeLock().lock();
+    logger.warn("{} lock write resource {}", Thread.currentThread().getName(),
+        seqFile.getFile().getAbsolutePath());
     try {
       TsFileMetaDataCache.getInstance().remove(seqFile);
       DeviceMetaDataCache.getInstance().remove(seqFile);
       FileReaderManager.getInstance().closeFileAndRemoveReader(seqFile);
-
       resource.removeFileReader(seqFile);
       try {
         oldFileWriter = new ForceAppendTsFileWriter(seqFile.getFile());
@@ -179,6 +180,8 @@ class MergeFileTask {
       throw e;
     } finally {
       seqFile.getWriteQueryLock().writeLock().unlock();
+      logger.warn("{} unlock write resource {}", Thread.currentThread().getName(),
+          seqFile.getFile().getAbsolutePath());
     }
   }
 
@@ -248,6 +251,8 @@ class MergeFileTask {
     logger.debug("{} moved unmerged chunks of {} to the new file", taskName, seqFile);
 
     seqFile.getWriteQueryLock().writeLock().lock();
+    logger.warn("{} lock write resource {}", Thread.currentThread().getName(),
+        seqFile.getFile().getAbsolutePath());
     try {
       resource.removeFileReader(seqFile);
       TsFileMetaDataCache.getInstance().remove(seqFile);
@@ -267,6 +272,8 @@ class MergeFileTask {
       throw e;
     }  finally {
       seqFile.getWriteQueryLock().writeLock().unlock();
+      logger.warn("{} unlock write resource {}", Thread.currentThread().getName(),
+          seqFile.getFile().getAbsolutePath());
     }
   }
 
