@@ -469,6 +469,7 @@ public class TsFileProcessor {
       totalMemTableSize += tobeFlushed.memSize();
     }
     workMemTable = null;
+    logger.info("register a memtable into FlushManager, memtable size : {}" + tobeFlushed.memSize());
     FlushManager.getInstance().registerTsFileProcessor(this);
   }
 
