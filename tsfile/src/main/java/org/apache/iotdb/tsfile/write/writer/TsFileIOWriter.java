@@ -397,6 +397,7 @@ public class TsFileIOWriter {
     Map<Path, Integer> startTimeIdxes = new HashMap<>();
     chunkStartTimes.forEach((p, t) -> startTimeIdxes.put(p, 0));
 
+    boolean pathsShown = false;
     Iterator<ChunkGroupMetaData> chunkGroupMetaDataIterator = chunkGroupMetaDataList.iterator();
     while (chunkGroupMetaDataIterator.hasNext()) {
       ChunkGroupMetaData chunkGroupMetaData = chunkGroupMetaDataIterator.next();
@@ -410,6 +411,10 @@ public class TsFileIOWriter {
         Integer startTimeIdx = startTimeIdxes.get(path);
         if (startTimeIdx == null) {
           logger.error("Unexpected timeseries {} found in file {}", path, file);
+          if (!pathsShown) {
+            logger.error("Merged timeseries in file {} are {}", file, startTimeIdxes.keySet());
+            pathsShown = true;
+          }
           continue;
         }
 
